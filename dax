@@ -1,7 +1,19 @@
-dim_datumy = 
-ADDCOLUMNS(
-SELECTCOLUMNS(
-CALENDARAUTO(),
-"datum",[Date]),
-"rok",YEAR([datum])
-,"mesic",MONTH([datum]))
+srazky zmena = 
+
+VAR _cy = SUM(data[srazky])
+VAR _py = CALCULATE(SUM(data[srazky]),DATEADD(dim_datumy[datum],-1,YEAR))
+VAR _pm = CALCULATE(SUM(data[srazky]),DATEADD(dim_datumy[datum],-1,MONTH))
+
+VAR _vypocet = 
+SWITCH(SELECTEDVALUE(dim_obdobi[obdobi])
+    ,"mezirocne" ,_cy - _py
+    ,"mezimesicne",_cy - _pm
+    ,"aktualni",_cy)
+
+RETURN 
+
+IF(SELECTEDVALUE(dim_obdobi[obdobi]) = "aktualni",_vypocet,
+
+    IF(AND(ISFILTERED(dim_datumy[rok]),ISFILTERED(dim_datumy[mesic])),
+    if(MIN(data[rok]) = MINX(ALL(data[rok]),data[rok]),"--",
+_vypocet),BLANK()))
